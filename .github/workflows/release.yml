@@ -44,6 +44,15 @@ jobs:
           cache-dependency-path: yarn.lock
           registry-url: https://registry.npmjs.org
 
+      # Trusted publishing requires npm CLI >= 11.5.1 and Node >= 22.14.0.
+      # Older combos often fail with misleading E404 on scoped packages (npm/cli#8976).
+      - name: npm version for Trusted Publishing
+        run: |
+          node -v
+          npm -v
+          npm install -g npm@^11.5.1
+          npm -v
+
       - name: Install
         run: yarn install --frozen-lockfile
 

@@ -1,5 +1,7 @@
 # Development
 
+For **how we add features, run checks, and ship releases** (including agents), see [AGENTS.md](./AGENTS.md).
+
 ## Build
 
 ```bash
@@ -39,6 +41,14 @@ npm publish --access public --otp=<code>
 ```
 
 `prepublishOnly` runs `npm run build` again as a safety net.
+
+### Troubleshooting: `npm publish` E404 on `@scope/pkg` (CI / Trusted Publishing)
+
+npm’s docs require **Node ≥ 22.14.0** and **npm CLI ≥ 11.5.1** for [Trusted Publishing](https://docs.npmjs.com/trusted-publishers). Older versions can fail with a **misleading `404 Not Found` on `PUT …/@scope%2fpackage`** even when provenance steps succeed — see [npm/cli#8976](https://github.com/npm/cli/issues/8976).
+
+This repo pins **`.nvmrc`** to **22.14.0** and the **release** workflow upgrades the global **npm** to **^11.5.1** before `npm publish`. Re-run the failed workflow after pulling latest `main`.
+
+Also verify on npmjs.com: **package → Settings → Trusted publishing** matches **workflow file `release.yml`**, GitHub org/repo, and that **`package.json` `repository.url`** matches this GitHub repo exactly.
 
 ## Consume from npm
 
