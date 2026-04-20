@@ -105,7 +105,7 @@ For development against a **local git clone** of this repo, point `args` at `../
 - `src/app/` — bridge (bundled by Metro)
 - `src/cli/` — MCP stdio server
 
-Maintainer workflow: [DEVELOPMENT.md](./DEVELOPMENT.md).
+Contributor / agent process: [AGENTS.md](./AGENTS.md). Maintainer workflow: [DEVELOPMENT.md](./DEVELOPMENT.md).
 
 ### CLI environment
 

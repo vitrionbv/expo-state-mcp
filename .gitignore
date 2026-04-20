@@ -6,3 +6,7 @@ dist/
 !.yarn/releases
 coverage/
 *.tgz
+
+# Local Cursor / skills (not part of the published package)
+.agents/
+skills-lock.json
