@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/vitrionbv/expo-state-mcp/compare/expo-state-mcp-v1.1.1...expo-state-mcp-v1.2.0) (2026-04-20)
+
+
+### Features
+
+* multi-device MCP identity and device-stamped responses ([7170494](https://github.com/vitrionbv/expo-state-mcp/commit/71704947bfa7fe394ffa21a7583582bebaf59b7a))
+* multi-device MCP identity and device-stamped responses ([d415db5](https://github.com/vitrionbv/expo-state-mcp/commit/d415db5d0470c36611ca341d66f521412e7ca08b))
+
 ## [1.1.1](https://github.com/vitrionbv/expo-state-mcp/compare/expo-state-mcp-v1.1.0...expo-state-mcp-v1.1.1) (2026-04-20)
 
 
