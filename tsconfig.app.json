@@ -1,14 +1,14 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
     "moduleResolution": "node",
     "declaration": true,
     "declarationMap": true,
-    "outDir": "dist",
-    "rootDir": "src",
+    "outDir": "dist/app",
+    "rootDir": "src/app",
     "noEmitOnError": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/app/**/*"]
 }

@@ -1,14 +1,14 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "outDir": "dist",
-    "rootDir": "src",
+    "outDir": "dist/cli",
+    "rootDir": "src/cli",
     "declaration": true,
     "declarationMap": true,
     "noEmitOnError": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/cli/**/*"]
 }

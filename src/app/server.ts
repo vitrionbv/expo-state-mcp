@@ -1,3 +1,4 @@
+import { Buffer } from "buffer";
 import type { BridgeContext } from "./types";
 import { handleHealth } from "./handlers/health";
 import {
