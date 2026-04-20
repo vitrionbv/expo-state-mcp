@@ -22,7 +22,10 @@ Package: **`@vitrion/expo-state-mcp`** on [npm](https://www.npmjs.com/package/@v
 **One-time setup**
 
 - **npm:** Package → **Settings** → **Trusted Publishers** → add **GitHub Actions** for org `vitrionbv`, repo `expo-state-mcp`, workflow file **`release.yml`** (environment blank unless you add one).
-- **GitHub:** Repository → **Settings** → **Actions** → **General** → enable **Read and write** workflow permissions and **Allow GitHub Actions to create and approve pull requests** (release-please needs this for Release PRs).
+- **GitHub (release-please Release PRs):** Either:
+  - **Repository:** **Settings** → **Actions** → **General** → **Read and write** permissions, and enable **Allow GitHub Actions to create and approve pull requests**; or
+  - **If that checkbox is greyed out:** your **organization** likely forbids it (only an **org owner** can change **Organization** → **Settings** → **Actions** → **General** → allow that option for this repo or org-wide). You do **not** need that checkbox if you use a PAT (next bullet).
+  - **PAT fallback (works when the checkbox is greyed):** Create a [fine-grained personal access token](https://github.com/settings/tokens?type=beta) with access to **`vitrionbv/expo-state-mcp`**, permissions **Contents** and **Pull requests** (Read and write), and **Metadata** (read). Add it as repository secret **`RELEASE_PLEASE_TOKEN`**. The release workflow uses it for release-please only; **npm publish** still uses **OIDC** (Trusted Publishing), not this token.
 
 ### Manual publish (emergency / local)
 
