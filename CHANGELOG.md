@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.1](https://github.com/vitrionbv/expo-state-mcp/compare/expo-state-mcp-v1.1.0...expo-state-mcp-v1.1.1) (2026-04-20)
+
+
+### Bug Fixes
+
+* **ci:** drop setup-node registry-url so npm publish uses OIDC not GITHUB_TOKEN ([1989703](https://github.com/vitrionbv/expo-state-mcp/commit/19897033dc0a1b35ec60abde8154bfdd4197bd45))
+* **ci:** grant id-token:write explicitly on npm publish jobs for OIDC ([fbd46e6](https://github.com/vitrionbv/expo-state-mcp/commit/fbd46e6eff34e689307260ccd8dab58f852d0f02))
+* **ci:** pin Node 22.14+ and npm 11.5+ for npm Trusted Publishing ([c9d618a](https://github.com/vitrionbv/expo-state-mcp/commit/c9d618a3035c3a2cf81a145ed161079e3feb3bdd))
+* **ci:** use Node 24 for npm 11.5+; drop fragile global npm upgrade on Actions ([92440d7](https://github.com/vitrionbv/expo-state-mcp/commit/92440d7d76df4987b3914af009d047b074e28800))
+* **ci:** use NPM_PUBLISH_TOKEN for workflow_dispatch publish-retry (OIDC is push-only) ([acc4331](https://github.com/vitrionbv/expo-state-mcp/commit/acc433174de66b41a31ed4a424f41dcc1a524523))
+* derive MCP server version from package.json ([d5f734b](https://github.com/vitrionbv/expo-state-mcp/commit/d5f734bffac09ad8344d72788aa0586b51e3dd2e))
+
 ## [1.1.0](https://github.com/vitrionbv/expo-state-mcp/compare/expo-state-mcp-v1.0.0...expo-state-mcp-v1.1.0) (2026-04-20)
 
 
