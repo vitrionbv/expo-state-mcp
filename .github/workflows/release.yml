@@ -3,6 +3,13 @@ name: release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag to check out and publish to npm (release-please uses e.g. expo-state-mcp-v1.1.0)"
+        required: true
+        type: string
+        default: "expo-state-mcp-v1.1.0"
 
 permissions:
   contents: write
@@ -12,6 +19,7 @@ permissions:
 
 jobs:
   release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.rp.outputs.release_created }}
@@ -29,7 +37,7 @@ jobs:
 
   publish:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    if: github.event_name == 'push' && needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -46,6 +54,39 @@ jobs:
 
       # Trusted publishing requires npm CLI >= 11.5.1 and Node >= 22.14.0.
       # Older combos often fail with misleading E404 on scoped packages (npm/cli#8976).
+      - name: npm version for Trusted Publishing
+        run: |
+          node -v
+          npm -v
+          npm install -g npm@^11.5.1
+          npm -v
+
+      - name: Install
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Publish to npm (Trusted Publishing + provenance)
+        run: npm publish --provenance --access public
+
+  # Re-run a failed npm publish without a new release-please release (same workflow file = same Trusted Publisher).
+  publish-retry:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+          cache-dependency-path: yarn.lock
+          registry-url: https://registry.npmjs.org
+
       - name: npm version for Trusted Publishing
         run: |
           node -v

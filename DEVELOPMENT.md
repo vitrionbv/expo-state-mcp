@@ -50,6 +50,8 @@ This repo pins **`.nvmrc`** to **22.14.0** and the **release** workflow upgrades
 
 Also verify on npmjs.com: **package → Settings → Trusted publishing** matches **workflow file `release.yml`**, GitHub org/repo, and that **`package.json` `repository.url`** matches this GitHub repo exactly.
 
+**Re-publish after a failed `npm publish`:** GitHub → **Actions** → **release** → **Run workflow** → leave the default **tag** (`expo-state-mcp-v1.1.0`) or set the tag that release-please created. That runs the **`publish-retry`** job only (Trusted Publishing still applies to `release.yml`).
+
 ## Consume from npm
 
 ```bash
