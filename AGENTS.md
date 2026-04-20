@@ -70,7 +70,7 @@ Short version:
 2. **release-please** opens a **Release PR** (version bump, manifest, changelog).
 3. **Merge the Release PR** when you want to release; tagging triggers **`npm publish --provenance`** in GitHub Actions.
 
-**Trusted Publishing** needs recent **Node** and **npm** versions; if CI shows a bogus **404** on publish, see **Troubleshooting** in [DEVELOPMENT.md](./DEVELOPMENT.md) (common mistake: `setup-node` **`registry-url`** breaks OIDC). To **retry npm only** after a failed publish, use **Actions → release → Run workflow** (tag defaults to `expo-state-mcp-v1.x.x` style from release-please).
+**Trusted Publishing** needs recent **Node** and **npm** versions; if CI shows a bogus **404** on publish, see **Troubleshooting** in [DEVELOPMENT.md](./DEVELOPMENT.md) (common mistake: `setup-node` **`registry-url`** breaks OIDC). To **retry npm only** after a failed publish, configure **`NPM_PUBLISH_TOKEN`** and use **Actions → release → Run workflow** (tag defaults to `expo-state-mcp-v1.x.x` style from release-please); see [DEVELOPMENT.md](./DEVELOPMENT.md).
 
 Do **not** rely on manual version bumps in day-to-day work; let the Release PR do it unless there is an exceptional hotfix process.
 

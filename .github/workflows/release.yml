@@ -70,13 +70,14 @@ jobs:
       - name: Publish to npm (Trusted Publishing + provenance)
         run: npm publish --provenance --access public
 
-  # Re-run a failed npm publish without a new release-please release (same workflow file = same Trusted Publisher).
+  # Re-run a failed npm publish without a new release-please release.
+  # GitHub OIDC Trusted Publishing is tied to normal `push` runs; `workflow_dispatch` typically gets ENEEDAUTH
+  # for `npm publish`. Use a granular npm **automation** token with publish rights to `@vitrion/expo-state-mcp`.
   publish-retry:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -88,15 +89,20 @@ jobs:
           node-version-file: .nvmrc
           cache: yarn
           cache-dependency-path: yarn.lock
+          registry-url: https://registry.npmjs.org
 
-      - name: Verify Node/npm for Trusted Publishing
+      - name: Verify Node/npm
         run: node -v && npm -v
 
       - name: Install
         run: yarn install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
       - name: Build
         run: yarn build
 
-      - name: Publish to npm (Trusted Publishing + provenance)
-        run: npm publish --provenance --access public
+      - name: Publish to npm (automation token)
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}

@@ -52,7 +52,7 @@ This repo pins **`.nvmrc`** to **Node 24**, which bundles **npm 11.5+**. Avoid `
 
 Also verify on npmjs.com: **package → Settings → Trusted publishing** matches **workflow file `release.yml`**, GitHub org/repo, and that **`package.json` `repository.url`** matches this GitHub repo exactly.
 
-**Re-publish after a failed `npm publish`:** GitHub → **Actions** → **release** → **Run workflow** → leave the default **tag** (`expo-state-mcp-v1.1.0`) or set the tag that release-please created. That runs the **`publish-retry`** job only (Trusted Publishing still applies to `release.yml`).
+**Re-publish after a failed `npm publish`:** Add repository secret **`NPM_PUBLISH_TOKEN`** — a [granular npm access token](https://docs.npmjs.com/creating-and-viewing-access-tokens) with **read and write** for **`@vitrion/expo-state-mcp`** (automation token is fine). Then GitHub → **Actions** → **release** → **Run workflow** → set the **tag** (e.g. `expo-state-mcp-v1.1.0`). The **`publish-retry`** job uses that token; **OIDC Trusted Publishing does not apply to `workflow_dispatch`**, so the token is required for manual retries. Normal releases on **`push`** still use OIDC without this secret.
 
 ## Consume from npm
 
