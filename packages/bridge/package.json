@@ -1,6 +1,6 @@
 {
   "name": "@vitrion/expo-state-mcp-bridge",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "In-app HTTP bridge for Expo SQLite + Zustand, dev-only — pairs with @vitrion/expo-state-mcp",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
