@@ -1,8 +1,21 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { bridgeGet, bridgePost } from "./bridgeClient.js";
 import { errText, okText } from "./toolResult.js";
+
+/** Resolved at runtime from repo root `package.json` (next to `dist/`). */
+const packageVersion = (
+  JSON.parse(
+    readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "..", "..", "package.json"),
+      "utf8",
+    ),
+  ) as { version: string }
+).version;
 
 function unwrapApi(data: unknown): { ok: boolean; payload?: unknown; error?: string } {
   if (!data || typeof data !== "object") {
@@ -21,7 +34,7 @@ function unwrapApi(data: unknown): { ok: boolean; payload?: unknown; error?: str
 export async function runMcp(): Promise<void> {
   const server = new McpServer({
     name: "expo-state-mcp",
-    version: "1.0.0",
+    version: packageVersion,
   });
 
   server.registerTool(
