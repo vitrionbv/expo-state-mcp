@@ -1,16 +1,16 @@
 # Agent and contributor guide
 
-This document is for **humans and coding agents** working on `@vitrion/expo-state-mcp`. Follow it so new work stays consistent with layout, quality checks, and release automation. Detailed npm/Cursor notes live in [README.md](./README.md) and [DEVELOPMENT.md](./DEVELOPMENT.md).
+This document is for **humans and coding agents** working on `@vitrion/expo-state-mcp`. Follow it so new work stays consistent with layout, quality checks, and release automation. Detailed npm and MCP client notes live in [README.md](./README.md) and [DEVELOPMENT.md](./DEVELOPMENT.md).
 
 ## What this package is
 
 - **One npm package**, two compile targets:
   - **`src/app/`** — in-app **HTTP bridge** (bundled by Metro into the Expo app). Talks to `expo-sqlite` and Zustand over TCP (`react-native-tcp-socket`).
   - **`src/cli/`** — **MCP stdio server** (Node) that proxies to the bridge via HTTP (`bridgeClient.ts`).
-- **`exports`** in `package.json`: Metro resolves the **`react-native`** entry (bridge); Node/Cursor resolves the default entry (CLI).
+- **`exports`** in `package.json`: Metro resolves the **`react-native`** entry (bridge); Node resolves the default entry (CLI).
 
 ```
-Cursor / CLI  ←stdio→  MCP server  ←HTTP→  bridge (inside running Expo app)
+MCP client / CLI  ←stdio→  MCP server  ←HTTP→  bridge (inside running Expo app)
 ```
 
 ## Before you change code

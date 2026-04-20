@@ -7,12 +7,12 @@
 [![Provenance](https://img.shields.io/badge/npm-provenance-success?logo=npm)](https://docs.npmjs.com/generating-provenance-statements)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-> Inspect and mutate a running **Expo** app's live **`expo-sqlite`** database and **`zustand`** stores from **Cursor** via **MCP** — dev-only, zero production footprint.
+> Inspect and mutate a running **Expo** app's live **`expo-sqlite`** database and **`zustand`** stores from any **MCP** client (Cursor, Claude, OpenAI Codex, …) — dev-only, zero production footprint.
 
-**One package (`@vitrion/expo-state-mcp`):** Metro resolves the **`react-native`** export (TCP bridge in the app); Node/Cursor runs the **`expo-state-mcp`** CLI.
+**One package (`@vitrion/expo-state-mcp`):** Metro resolves the **`react-native`** export (TCP bridge in the app); Node runs the **`expo-state-mcp`** CLI for your MCP host.
 
 ```
-Cursor  ←stdio→  CLI  ←HTTP→  bridge (in the RN app)
+MCP client  ←stdio→  CLI  ←HTTP→  bridge (in the RN app)
 ```
 
 ## Expo app setup
@@ -25,6 +25,9 @@ yarn add -D @vitrion/expo-state-mcp
 
 `react-native-tcp-socket` is included as a dependency of this package. Rebuild the native app once (`expo run:ios` / `expo run:android`) so autolinking picks it up.
 
+<details>
+<summary>Local clone instead of npm (<code>file:</code> install)</summary>
+
 For a **local checkout** next to your app:
 
 ```bash
@@ -32,6 +35,8 @@ yarn add -D file:../expo-state-mcp
 ```
 
 Run `yarn build` in this repo first (`dist/` is not committed). Ensure Metro resolves `package.json` `exports` (Expo SDK 54+ / Metro 0.82+ usually does; otherwise `resolver.unstable_enablePackageExports = true` in `metro.config.js`).
+
+</details>
 
 ### 2. Wire the bridge (`__DEV__`)
 
@@ -77,7 +82,13 @@ By default the bridge listens on **loopback** (`127.0.0.1`). That is enough in m
 
 If everything already works without it, leave it unset.
 
-### 3. Cursor (`.cursor/mcp.json`)
+### 3. Wire your MCP client
+
+The same server works everywhere: **`npx -y @vitrion/expo-state-mcp`** with optional env **`EXPO_STATE_MCP_BRIDGE_URL`** (default `http://127.0.0.1:9778`).
+
+#### Cursor
+
+Create [`.cursor/mcp.json`](https://docs.cursor.com/context/model-context-protocol):
 
 ```json
 {
@@ -93,7 +104,66 @@ If everything already works without it, leave it unset.
 }
 ```
 
-For development against a **local git clone** of this repo, point `args` at `../expo-state-mcp/dist/cli/cli.js` with `command`: `node` (see [DEVELOPMENT.md](./DEVELOPMENT.md)).
+#### Claude Desktop
+
+Same `mcpServers` JSON shape. Edit **`claude_desktop_config.json`**:
+
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "expo-state-mcp": {
+      "command": "npx",
+      "args": ["-y", "@vitrion/expo-state-mcp"],
+      "env": {
+        "EXPO_STATE_MCP_BRIDGE_URL": "http://127.0.0.1:9778"
+      }
+    }
+  }
+}
+```
+
+#### Claude Code
+
+Add the server from a terminal (flags before the name; `--` separates Claude’s args from the server command):
+
+```bash
+claude mcp add --scope user --env EXPO_STATE_MCP_BRIDGE_URL=http://127.0.0.1:9778 expo-state-mcp -- npx -y @vitrion/expo-state-mcp
+```
+
+See [Claude Code MCP docs](https://docs.claude.com/en/docs/claude-code/mcp).
+
+#### OpenAI Codex (CLI and IDE)
+
+[OpenAI Codex](https://developers.openai.com/codex/mcp) loads MCP servers from **`~/.codex/config.toml`** (or project **`.codex/config.toml`** on trusted projects). The **Codex CLI** and **Codex IDE extension** share that file, so you configure once for both.
+
+**Add from a terminal** (same pattern as Context7 and other stdio servers in the Codex docs):
+
+```bash
+codex mcp add expo-state-mcp --env EXPO_STATE_MCP_BRIDGE_URL=http://127.0.0.1:9778 -- npx -y @vitrion/expo-state-mcp
+```
+
+**Or edit `config.toml` manually** — in the IDE, use **MCP settings → Open config.toml** from the gear menu. Use a `[mcp_servers.…]` table; env vars go in a nested `[mcp_servers.<name>.env]` block ([official example shape](https://developers.openai.com/codex/mcp)):
+
+```toml
+[mcp_servers.expo-state-mcp]
+command = "npx"
+args = ["-y", "@vitrion/expo-state-mcp"]
+
+[mcp_servers.expo-state-mcp.env]
+EXPO_STATE_MCP_BRIDGE_URL = "http://127.0.0.1:9778"
+```
+
+See [Model Context Protocol – Codex](https://developers.openai.com/codex/mcp) for `codex mcp` commands, timeouts, and HTTP-based MCP servers.
+
+<details>
+<summary>Local clone of this repo (run MCP with <code>node …/dist/cli/cli.js</code> instead of <code>npx</code>)</summary>
+
+Use `command`: `node` and point `args` at `../expo-state-mcp/dist/cli/cli.js` (after `yarn build` in the clone). Copy-paste JSON and TOML for each MCP host in [DEVELOPMENT.md](./DEVELOPMENT.md).
+
+</details>
 
 ### Connectivity
 

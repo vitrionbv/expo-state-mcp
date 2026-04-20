@@ -60,7 +60,10 @@ Also verify on npmjs.com: **package → Settings → Trusted publishing** matche
 yarn add -D @vitrion/expo-state-mcp
 ```
 
-## Local `file:` install
+## Optional: local paths
+
+<details>
+<summary>Local <code>file:</code> install</summary>
 
 ```json
 {
@@ -79,7 +82,14 @@ If TypeScript sees duplicate `expo-sqlite` types, pin in the host app:
 }
 ```
 
-## Cursor using a local CLI build
+</details>
+
+<details>
+<summary>MCP: local <code>dist/cli/cli.js</code> (any client)</summary>
+
+Point at the built **`dist/cli/cli.js`** with `command`: **`node`**. Replace the path with your checkout location.
+
+**Cursor / Claude Desktop** (JSON `mcpServers`):
 
 ```json
 {
@@ -95,7 +105,22 @@ If TypeScript sees duplicate `expo-sqlite` types, pin in the host app:
 }
 ```
 
+**OpenAI Codex** (CLI and IDE; `~/.codex/config.toml` or project `.codex/config.toml`):
+
+```toml
+[mcp_servers.expo-state-mcp]
+command = "node"
+args = ["/absolute/path/to/expo-state-mcp/dist/cli/cli.js"]
+
+[mcp_servers.expo-state-mcp.env]
+EXPO_STATE_MCP_BRIDGE_URL = "http://127.0.0.1:9778"
+```
+
+Or: `codex mcp add expo-state-mcp --env EXPO_STATE_MCP_BRIDGE_URL=http://127.0.0.1:9778 -- node /absolute/path/to/expo-state-mcp/dist/cli/cli.js`
+
 Published installs typically use `npx -y @vitrion/expo-state-mcp` — see the root [README](./README.md).
+
+</details>
 
 ## Reachability troubleshooting
 
