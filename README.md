@@ -84,9 +84,19 @@ If everything already works without it, leave it unset.
 
 ### 3. Wire your MCP client
 
-The same server works everywhere: **`npx -y @vitrion/expo-state-mcp`** with optional env **`EXPO_STATE_MCP_BRIDGE_URL`** (default `http://127.0.0.1:9778`).
+Same stdio server everywhere: **`npx -y @vitrion/expo-state-mcp`**. Optional env **`EXPO_STATE_MCP_BRIDGE_URL`** (default `http://127.0.0.1:9778`).
 
-#### Cursor
+Pick your client — then open the matching **full details** block for copy-paste config.
+
+| Client | Where you wire it |
+|--------|-------------------|
+| **Cursor** | Project [`.cursor/mcp.json`](https://docs.cursor.com/context/model-context-protocol) → `mcpServers` |
+| **Claude Desktop** | `claude_desktop_config.json` (paths below) → same `mcpServers` JSON shape |
+| **Claude Code** | `claude mcp add …` ([MCP docs](https://docs.claude.com/en/docs/claude-code/mcp)) |
+| **OpenAI Codex** (CLI + IDE) | Shared `~/.codex/config.toml` or `codex mcp add …` ([Codex MCP](https://developers.openai.com/codex/mcp)); IDE: **gear → MCP settings → Open config.toml** |
+
+<details>
+<summary>Cursor — full details</summary>
 
 Create [`.cursor/mcp.json`](https://docs.cursor.com/context/model-context-protocol):
 
@@ -104,12 +114,17 @@ Create [`.cursor/mcp.json`](https://docs.cursor.com/context/model-context-protoc
 }
 ```
 
-#### Claude Desktop
+</details>
 
-Same `mcpServers` JSON shape. Edit **`claude_desktop_config.json`**:
+<details>
+<summary>Claude Desktop — full details</summary>
+
+Edit **`claude_desktop_config.json`**:
 
 - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+Same `mcpServers` shape as Cursor:
 
 ```json
 {
@@ -125,9 +140,12 @@ Same `mcpServers` JSON shape. Edit **`claude_desktop_config.json`**:
 }
 ```
 
-#### Claude Code
+</details>
 
-Add the server from a terminal (flags before the name; `--` separates Claude’s args from the server command):
+<details>
+<summary>Claude Code — full details</summary>
+
+From a terminal. Flags go **before** the server name; **`--`** separates Claude’s options from the command that starts the MCP server.
 
 ```bash
 claude mcp add --scope user --env EXPO_STATE_MCP_BRIDGE_URL=http://127.0.0.1:9778 expo-state-mcp -- npx -y @vitrion/expo-state-mcp
@@ -135,17 +153,20 @@ claude mcp add --scope user --env EXPO_STATE_MCP_BRIDGE_URL=http://127.0.0.1:977
 
 See [Claude Code MCP docs](https://docs.claude.com/en/docs/claude-code/mcp).
 
-#### OpenAI Codex (CLI and IDE)
+</details>
 
-[OpenAI Codex](https://developers.openai.com/codex/mcp) loads MCP servers from **`~/.codex/config.toml`** (or project **`.codex/config.toml`** on trusted projects). The **Codex CLI** and **Codex IDE extension** share that file, so you configure once for both.
+<details>
+<summary>OpenAI Codex (CLI + IDE) — full details</summary>
 
-**Add from a terminal** (same pattern as Context7 and other stdio servers in the Codex docs):
+[OpenAI Codex](https://developers.openai.com/codex/mcp) reads MCP from **`~/.codex/config.toml`** or project **`.codex/config.toml`** (trusted projects). **CLI and IDE extension share one file** — configure once, use in both.
+
+**Terminal:**
 
 ```bash
 codex mcp add expo-state-mcp --env EXPO_STATE_MCP_BRIDGE_URL=http://127.0.0.1:9778 -- npx -y @vitrion/expo-state-mcp
 ```
 
-**Or edit `config.toml` manually** — in the IDE, use **MCP settings → Open config.toml** from the gear menu. Use a `[mcp_servers.…]` table; env vars go in a nested `[mcp_servers.<name>.env]` block ([official example shape](https://developers.openai.com/codex/mcp)):
+**Or edit `config.toml`** (in the IDE: **MCP settings → Open config.toml** from the gear menu). Env block matches [Codex docs](https://developers.openai.com/codex/mcp) (`[mcp_servers.<name>.env]`):
 
 ```toml
 [mcp_servers.expo-state-mcp]
@@ -156,12 +177,14 @@ args = ["-y", "@vitrion/expo-state-mcp"]
 EXPO_STATE_MCP_BRIDGE_URL = "http://127.0.0.1:9778"
 ```
 
-See [Model Context Protocol – Codex](https://developers.openai.com/codex/mcp) for `codex mcp` commands, timeouts, and HTTP-based MCP servers.
+More options: `codex mcp` help, timeouts, streamable HTTP servers — [Model Context Protocol – Codex](https://developers.openai.com/codex/mcp).
+
+</details>
 
 <details>
-<summary>Local clone of this repo (run MCP with <code>node …/dist/cli/cli.js</code> instead of <code>npx</code>)</summary>
+<summary>Local clone of this repo (<code>node …/dist/cli/cli.js</code> instead of <code>npx</code>)</summary>
 
-Use `command`: `node` and point `args` at `../expo-state-mcp/dist/cli/cli.js` (after `yarn build` in the clone). Copy-paste JSON and TOML for each MCP host in [DEVELOPMENT.md](./DEVELOPMENT.md).
+Use `command`: `node` and point `args` at `../expo-state-mcp/dist/cli/cli.js` (after `yarn build` in the clone). Copy-paste JSON and TOML per client in [DEVELOPMENT.md](./DEVELOPMENT.md).
 
 </details>
 
