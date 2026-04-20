@@ -44,13 +44,14 @@ jobs:
         with:
           ref: ${{ needs.release-please.outputs.tag_name }}
 
+      # Do not set registry-url here: that injects NODE_AUTH_TOKEN and makes npm use the GitHub token
+      # against registry.npmjs.org, which breaks OIDC Trusted Publishing (misleading 404 on publish).
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: yarn
           cache-dependency-path: yarn.lock
-          registry-url: https://registry.npmjs.org
 
       # Trusted publishing needs npm CLI >= 11.5.1 (bundled with Node 24+). Do not `npm i -g npm` on Actions — it can break the preinstalled toolchain.
       - name: Verify Node/npm for Trusted Publishing
@@ -80,7 +81,6 @@ jobs:
           node-version-file: .nvmrc
           cache: yarn
           cache-dependency-path: yarn.lock
-          registry-url: https://registry.npmjs.org
 
       - name: Verify Node/npm for Trusted Publishing
         run: node -v && npm -v
