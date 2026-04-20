@@ -1,0 +1,14 @@
+{
+  "name": "expo-state-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "yarn workspaces run build",
+    "clean": "yarn workspaces run clean",
+    "lint": "yarn workspaces run lint --if-present"
+  },
+  "packageManager": "yarn@1.22.22"
+}
