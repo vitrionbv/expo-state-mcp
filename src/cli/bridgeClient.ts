@@ -1,8 +1,12 @@
 const DEFAULT_BASE = "http://127.0.0.1:9778";
 const TIMEOUT_MS = 10_000;
 
-function baseUrl(): string {
-  return process.env.EXPO_STATE_MCP_BRIDGE_URL ?? DEFAULT_BASE;
+function resolvedBase(bridgeBaseUrl?: string): string {
+  return (
+    bridgeBaseUrl ??
+    process.env.EXPO_STATE_MCP_BRIDGE_URL ??
+    DEFAULT_BASE
+  ).replace(/\/+$/, "");
 }
 
 function headers(): Headers {
@@ -16,18 +20,22 @@ function headers(): Headers {
   return h;
 }
 
-export async function bridgeGet(pathAndQuery: string): Promise<unknown> {
+export async function bridgeGet(
+  pathAndQuery: string,
+  bridgeBaseUrl?: string,
+): Promise<unknown> {
+  const base = resolvedBase(bridgeBaseUrl);
   const ctrl = AbortSignal.timeout(TIMEOUT_MS);
   let res: Response;
   try {
-    res = await fetch(`${baseUrl()}${pathAndQuery}`, {
+    res = await fetch(`${base}${pathAndQuery}`, {
       method: "GET",
       headers: headers(),
       signal: ctrl,
     });
   } catch (e) {
     throw new Error(
-      `Bridge unreachable at ${baseUrl()} — is the app running with setupBridge()? (${String(e)})`,
+      `Bridge unreachable at ${base} — is the app running with setupBridge()? (${String(e)})`,
       { cause: e },
     );
   }
@@ -43,11 +51,16 @@ export async function bridgeGet(pathAndQuery: string): Promise<unknown> {
   return data;
 }
 
-export async function bridgePost(path: string, body: unknown): Promise<unknown> {
+export async function bridgePost(
+  path: string,
+  body: unknown,
+  bridgeBaseUrl?: string,
+): Promise<unknown> {
+  const base = resolvedBase(bridgeBaseUrl);
   const ctrl = AbortSignal.timeout(TIMEOUT_MS);
   let res: Response;
   try {
-    res = await fetch(`${baseUrl()}${path}`, {
+    res = await fetch(`${base}${path}`, {
       method: "POST",
       headers: headers(),
       body: JSON.stringify(body ?? {}),
@@ -55,7 +68,7 @@ export async function bridgePost(path: string, body: unknown): Promise<unknown> 
     });
   } catch (e) {
     throw new Error(
-      `Bridge unreachable at ${baseUrl()} — is the app running with setupBridge()? (${String(e)})`,
+      `Bridge unreachable at ${base} — is the app running with setupBridge()? (${String(e)})`,
       { cause: e },
     );
   }

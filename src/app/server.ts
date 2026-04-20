@@ -1,5 +1,5 @@
 import { Buffer } from "buffer";
-import type { BridgeContext } from "./types";
+import type { ApiResult, BridgeContext } from "./types";
 import { handleHealth } from "./handlers/health";
 import {
   handleSqliteQuery,
@@ -46,6 +46,11 @@ function json(result: unknown, status = 200): { status: number; body: Buffer } {
   };
 }
 
+function wrapOk<T>(ctx: BridgeContext, r: ApiResult<T>): { status: number; body: Buffer } {
+  if (!r.ok) return json(r);
+  return json({ ok: true as const, device: ctx.device, data: r.data });
+}
+
 async function dispatch(
   ctx: BridgeContext,
   req: import("./util/http").ParsedHttpRequest,
@@ -58,19 +63,23 @@ async function dispatch(
   const { method, path: pathname, query } = req;
 
   try {
+    if (method === "GET" && pathname === "/device") {
+      return wrapOk(ctx, { ok: true, data: ctx.device });
+    }
+
     if (method === "GET" && pathname === "/health") {
       const r = await handleHealth(ctx, listen.port, listen.host);
-      return json(r);
+      return wrapOk(ctx, r);
     }
 
     if (method === "GET" && pathname === "/sqlite/tables") {
       const r = await handleSqliteTables(ctx);
-      return json(r);
+      return wrapOk(ctx, r);
     }
 
     if (method === "GET" && pathname === "/sqlite/schema") {
       const r = await handleSqliteSchema(ctx, query.table);
-      return json(r);
+      return wrapOk(ctx, r);
     }
 
     if (method === "POST" && pathname === "/sqlite/query") {
@@ -82,17 +91,17 @@ async function dispatch(
         return json({ ok: false, error: "Invalid JSON body" }, 400);
       }
       const r = await handleSqliteQuery(ctx, body);
-      return json(r);
+      return wrapOk(ctx, r);
     }
 
     if (method === "GET" && pathname === "/zustand/stores") {
       const r = handleZustandStores(ctx);
-      return json(r);
+      return wrapOk(ctx, r);
     }
 
     if (method === "GET" && pathname === "/zustand/state") {
       const r = handleZustandGet(ctx, query.name, query.path);
-      return json(r);
+      return wrapOk(ctx, r);
     }
 
     if (method === "POST" && pathname === "/zustand/state") {
@@ -104,7 +113,7 @@ async function dispatch(
         return json({ ok: false, error: "Invalid JSON body" }, 400);
       }
       const r = handleZustandSet(ctx, body);
-      return json(r);
+      return wrapOk(ctx, r);
     }
 
     if (method === "POST" && pathname === "/zustand/call") {
@@ -116,7 +125,7 @@ async function dispatch(
         return json({ ok: false, error: "Invalid JSON body" }, 400);
       }
       const r = handleZustandCall(ctx, body);
-      return json(r);
+      return wrapOk(ctx, r);
     }
 
     return json({ ok: false, error: `Not found: ${method} ${pathname}` }, 404);
