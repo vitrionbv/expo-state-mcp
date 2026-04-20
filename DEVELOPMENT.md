@@ -118,6 +118,8 @@ EXPO_STATE_MCP_BRIDGE_URL = "http://127.0.0.1:9778"
 
 Or: `codex mcp add expo-state-mcp --env EXPO_STATE_MCP_BRIDGE_URL=http://127.0.0.1:9778 -- node /absolute/path/to/expo-state-mcp/dist/cli/cli.js`
 
+**Several bridges:** add env **`EXPO_STATE_MCP_BRIDGES`** (JSON array or comma-separated URLs) and optional **`EXPO_STATE_MCP_DEFAULT_DEVICE`** — see [README](./README.md) § **Devices (MCP)**.
+
 Published installs typically use `npx -y @vitrion/expo-state-mcp` — see the root [README](./README.md).
 
 </details>

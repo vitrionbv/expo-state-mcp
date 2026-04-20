@@ -47,7 +47,7 @@ import * as SQLite from "expo-sqlite";
 const db = SQLite.openDatabaseSync("my.db");
 import { useAuthStore } from "./stores/auth";
 
-setupBridge({
+void setupBridge({
   port: 9778,
   appName: "my-app",
   db,
@@ -55,7 +55,7 @@ setupBridge({
 });
 ```
 
-Call once early (e.g. next to Reactotron). No-ops when `__DEV__` is false.
+`setupBridge` returns a `Promise` (it collects device metadata before listening). You can `void setupBridge(...)` at module scope or `await setupBridge(...)` during app init. Call once early (e.g. next to Reactotron). No-ops when `__DEV__` is false.
 
 **Android Emulator:** from the host machine, run `adb reverse tcp:9778 tcp:9778` so `http://127.0.0.1:9778` reaches the emulated app.
 
@@ -70,7 +70,7 @@ By default the bridge listens on **loopback** (`127.0.0.1`). That is enough in m
 - **iOS Simulator:** the simulator and the Mac each have their own loopback; on some OS / simulator versions, only the simulator can see a `127.0.0.1` listener. If the **host** cannot connect, pass `bindAllInterfaces: true` (listens on `0.0.0.0`) so traffic from your Mac reaches the bridge. Example:
 
   ```tsx
-  setupBridge({
+  void setupBridge({
     // …
     bindAllInterfaces: true,
   });
@@ -196,9 +196,27 @@ Use `command`: `node` and point `args` at `../expo-state-mcp/dist/cli/cli.js` (a
 | Android Emulator | `http://127.0.0.1:9778` after `adb reverse tcp:9778 tcp:9778` | Reverse forwards host port to the emulator. |
 | Physical device | `http://<lan-ip>:9778` | Use `bindAllInterfaces` / LAN binding; align `EXPO_STATE_MCP_BRIDGE_URL` with logs. |
 
+### Devices (MCP)
+
+Each successful bridge response includes a **`device`** object (platform, model, `id`, optional `lanIp`, …). The MCP tools return JSON shaped as **`{ "device": { … }, "data": … }`** so you always know which bridge answered.
+
+- **`list_devices`** — probes `GET /device` on every configured bridge and returns `{ default, devices }`. Use optional **`refresh: true`** to drop the cache and re-probe.
+- **Per-tool `device`** — every SQLite/Zustand tool accepts an optional **`device`** string: a device **`id`** or **`alias`** from `list_devices`. If you configure **more than one** bridge URL, set **`EXPO_STATE_MCP_DEFAULT_DEVICE`** to an id or alias, or pass **`device`** on each call (otherwise the CLI errors with a hint).
+
+**One bridge (default):** only **`EXPO_STATE_MCP_BRIDGE_URL`** (default `http://127.0.0.1:9778`) — same as before.
+
+**Several bridges** (e.g. iOS simulator + Android emulator on different ports):
+
+- **`EXPO_STATE_MCP_BRIDGES`** — JSON array or comma-separated list of base URLs:
+  - JSON: `[{"url":"http://127.0.0.1:9778"},{"url":"http://127.0.0.1:9779","alias":"android"}]`
+  - Shorthand: `http://127.0.0.1:9778,http://127.0.0.1:9779`
+- **`EXPO_STATE_MCP_DEFAULT_DEVICE`** — id or alias used when a tool omits **`device`**.
+
+If the app bridge predates `GET /device`, the CLI still probes **`/health`** and assigns a stable **`legacy-…`** device id so `list_devices` and routing keep working after a CLI-only upgrade.
+
 ## MCP tools
 
-`sqlite_list_tables`, `sqlite_describe_table`, `sqlite_query`, `sqlite_explain`, `zustand_list_stores`, `zustand_get`, `zustand_set`, `zustand_call`
+`list_devices`, `sqlite_list_tables`, `sqlite_describe_table`, `sqlite_query`, `sqlite_explain`, `zustand_list_stores`, `zustand_get`, `zustand_set`, `zustand_call`
 
 ## Repo layout
 
@@ -212,6 +230,8 @@ Contributor / agent process: [AGENTS.md](./AGENTS.md). Maintainer workflow: [DEV
 | Variable | Default |
 |----------|---------|
 | `EXPO_STATE_MCP_BRIDGE_URL` | `http://127.0.0.1:9778` |
+| `EXPO_STATE_MCP_BRIDGES` | _(empty — use `EXPO_STATE_MCP_BRIDGE_URL` only)_ |
+| `EXPO_STATE_MCP_DEFAULT_DEVICE` | _(empty — required when multiple bridges and tool omits `device`)_ |
 | `EXPO_STATE_MCP_TOKEN` | _(empty)_ |
 
 ## Security

@@ -1,4 +1,13 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { DeviceInfo } from "./devices.js";
+
+function stringifyJson(data: unknown): string {
+  return JSON.stringify(
+    data,
+    (_, v) => (typeof v === "bigint" ? v.toString() : v),
+    2,
+  );
+}
 
 export function okText(data: unknown): CallToolResult {
   return {
@@ -8,10 +17,18 @@ export function okText(data: unknown): CallToolResult {
         text:
           typeof data === "string"
             ? data
-            : JSON.stringify(data, (_, v) => (typeof v === "bigint" ? v.toString() : v), 2),
+            : stringifyJson(data),
       },
     ],
   };
+}
+
+/** Tool success body: `{ device, data }` (device may be null for very old bridges). */
+export function okWithDevice(
+  device: DeviceInfo | undefined | null,
+  payload: unknown,
+): CallToolResult {
+  return okText({ device: device ?? null, data: payload });
 }
 
 export function errText(message: string): CallToolResult {

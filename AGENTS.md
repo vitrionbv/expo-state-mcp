@@ -25,14 +25,14 @@ Most features touch **three layers**: bridge HTTP API → optional handler modul
 
 ### 1. Bridge (React Native)
 
-- Add or extend a **handler** under [`src/app/handlers/`](src/app/handlers/) (e.g. SQLite / Zustand). Return the existing `{ ok: true, data }` / `{ ok: false, error }` shape from [`src/app/types.ts`](src/app/types.ts).
-- **Register the route** in [`src/app/server.ts`](src/app/server.ts) inside `dispatch`: parse method/path, read query or JSON body, call the handler, return `json(...)`.
+- Add or extend a **handler** under [`src/app/handlers/`](src/app/handlers/) (e.g. SQLite / Zustand). Return the existing `{ ok: true, data }` / `{ ok: false, error }` shape from [`src/app/types.ts`](src/app/types.ts). On success, **`dispatch`** wraps responses with **`device`** via `wrapOk` — do not add `device` inside individual handlers.
+- **Register the route** in [`src/app/server.ts`](src/app/server.ts) inside `dispatch`: parse method/path, read query or JSON body, call the handler, return `wrapOk(ctx, result)` for success paths (or `json(...)` for errors / non-JSON).
 - **Security:** bridge is dev-only (`setupBridge` is a no-op when `__DEV__` is false). Still treat inputs carefully: avoid prototype pollution on dot-paths (see [`src/app/util/path.ts`](src/app/util/path.ts)), respect optional Bearer token auth, and keep request bodies bounded (see [`src/app/util/http.ts`](src/app/util/http.ts)).
 
 ### 2. MCP tools (Node CLI)
 
-- In [`src/cli/mcp.ts`](src/cli/mcp.ts), call `bridgeGet` / `bridgePost` with the same paths the bridge exposes.
-- Define **`inputSchema`** with **Zod**; use `unwrapApi` + `okText` / `errText` like existing tools.
+- In [`src/cli/mcp.ts`](src/cli/mcp.ts), call `bridgeGet` / `bridgePost` with the same paths the bridge exposes (pass the resolved bridge **base URL** from [`src/cli/devices.ts`](src/cli/devices.ts) when multi-bridge).
+- Define **`inputSchema`** with **Zod**; use `unwrapApi` + **`okWithDevice`** / `errText` for tools that return bridge data (shape `{ device, data }`). Use [`src/cli/devices.ts`](src/cli/devices.ts) for `resolveDevice` / `list_devices`.
 - Bump the **MCP server `version`** in `McpServer({ ... })` when you ship a meaningful CLI/tool change (keep aligned with `package.json` when practical).
 
 ### 3. Tests
@@ -81,9 +81,10 @@ Do **not** rely on manual version bumps in day-to-day work; let the Release PR d
 | [`src/app/index.ts`](src/app/index.ts) | `setupBridge` / `teardownBridge` |
 | [`src/app/server.ts`](src/app/server.ts) | HTTP dispatch, auth, TCP server |
 | [`src/app/handlers/`](src/app/handlers/) | SQLite / Zustand / health handlers |
-| [`src/app/util/`](src/app/util/) | HTTP parsing, paths, IP helper |
+| [`src/app/util/`](src/app/util/) | HTTP parsing, paths, IP helper, device identity |
 | [`src/cli/mcp.ts`](src/cli/mcp.ts) | MCP tools registration |
 | [`src/cli/bridgeClient.ts`](src/cli/bridgeClient.ts) | HTTP client to the bridge |
+| [`src/cli/devices.ts`](src/cli/devices.ts) | Multi-bridge env parsing, `/device` probe, `resolveDevice` |
 | [`tests/`](tests/) | Vitest tests |
 | [`eslint.config.mjs`](eslint.config.mjs) | ESLint flat config |
 | [`vitest.config.ts`](vitest.config.ts) | Vitest config |
