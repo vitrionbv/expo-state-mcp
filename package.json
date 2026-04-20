@@ -1,6 +1,6 @@
 {
   "name": "@vitrion/expo-state-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "MCP (stdio) + in-app HTTP bridge for Expo SQLite and Zustand — one package, dev-only",
   "type": "module",
   "main": "./dist/cli/cli.js",
