@@ -25,5 +25,11 @@ jobs:
       - name: Typecheck
         run: yarn typecheck
 
+      - name: Lint
+        run: yarn lint
+
+      - name: Test
+        run: yarn test
+
       - name: Build package
         run: yarn build

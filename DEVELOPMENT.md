@@ -9,6 +9,8 @@ yarn build
 
 Outputs **`dist/app/`** (React Native bridge) and **`dist/cli/`** (Node MCP + `expo-state-mcp` bin). `dist/` is gitignored — run `yarn build` before publishing or when using `file:` from a host app.
 
+**Checks (same order as CI):** `yarn typecheck` → `yarn lint` → `yarn test` → `yarn build`, or **`yarn verify`** for all of the above. **`yarn audit`** checks dependency advisories.
+
 ## Releases and publishing (maintainers)
 
 Package: **`@vitrion/expo-state-mcp`** on [npm](https://www.npmjs.com/package/@vitrion/expo-state-mcp).

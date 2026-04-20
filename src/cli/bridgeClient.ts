@@ -28,6 +28,7 @@ export async function bridgeGet(pathAndQuery: string): Promise<unknown> {
   } catch (e) {
     throw new Error(
       `Bridge unreachable at ${baseUrl()} — is the app running with setupBridge()? (${String(e)})`,
+      { cause: e },
     );
   }
   const text = await res.text();
@@ -55,6 +56,7 @@ export async function bridgePost(path: string, body: unknown): Promise<unknown> 
   } catch (e) {
     throw new Error(
       `Bridge unreachable at ${baseUrl()} — is the app running with setupBridge()? (${String(e)})`,
+      { cause: e },
     );
   }
   const text = await res.text();

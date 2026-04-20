@@ -135,7 +135,7 @@ export function startBridgeServer(
   ctx: BridgeContext,
   listen: StartBridgeOptions,
 ): { close: () => void } {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createServer } = require("react-native-tcp-socket") as {
     createServer: (cb: (s: Connection) => void) => {
       listen: (

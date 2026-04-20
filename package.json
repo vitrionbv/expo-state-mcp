@@ -29,6 +29,9 @@
     "build:app": "tsc -p tsconfig.app.json",
     "build:cli": "tsc -p tsconfig.cli.json",
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.cli.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "verify": "yarn typecheck && yarn lint && yarn test && yarn build",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },
@@ -66,10 +69,14 @@
     }
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^22.13.10",
     "@types/react": "~19.1.0",
+    "eslint": "^10.2.1",
     "expo-sqlite": "~16.0.10",
     "typescript": "~5.9.2",
+    "typescript-eslint": "^8.58.2",
+    "vitest": "^4.1.4",
     "zustand": "^5.0.8"
   },
   "engines": {

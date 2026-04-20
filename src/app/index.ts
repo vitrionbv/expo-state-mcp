@@ -1,6 +1,5 @@
 import type * as SQLite from "expo-sqlite";
 import type { StoreApi } from "zustand";
-import type { StoreMap } from "./types";
 import { startBridgeServer } from "./server";
 import { tryGetLanIPv4 } from "./util/ip";
 
