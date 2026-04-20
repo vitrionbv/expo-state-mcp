@@ -28,6 +28,7 @@
     "build": "yarn build:app && yarn build:cli && node ./scripts/add-shebang.mjs",
     "build:app": "tsc -p tsconfig.app.json",
     "build:cli": "tsc -p tsconfig.cli.json",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.cli.json --noEmit",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },

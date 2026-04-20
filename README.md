@@ -116,7 +116,7 @@ Maintainer workflow: [DEVELOPMENT.md](./DEVELOPMENT.md).
 
 ## Security
 
-Dev-only: loopback by default, optional token, `setupBridge` does nothing in production builds.
+Dev-only: loopback by default, optional Bearer token (compared in constant time), request bodies capped at 5 MiB, `setupBridge` does nothing in production builds. Use a shared secret when binding beyond loopback.
 
 ## License
 

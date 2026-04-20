@@ -9,16 +9,31 @@ yarn build
 
 Outputs **`dist/app/`** (React Native bridge) and **`dist/cli/`** (Node MCP + `expo-state-mcp` bin). `dist/` is gitignored — run `yarn build` before publishing or when using `file:` from a host app.
 
-## Publishing (maintainers)
+## Releases and publishing (maintainers)
 
-Package: **`@vitrion/expo-state-mcp`** under the [Vitrion org](https://www.npmjs.com/settings/vitrion/packages). OTP is usually required:
+Package: **`@vitrion/expo-state-mcp`** on [npm](https://www.npmjs.com/package/@vitrion/expo-state-mcp).
+
+### Automated (recommended)
+
+1. **Commits on `main`** use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, `feat!:` for breaking changes, etc.).
+2. **[release-please](https://github.com/googleapis/release-please)** (workflow `.github/workflows/release.yml`) opens or updates a **Release PR** that bumps `package.json`, [`.release-please-manifest.json`](./.release-please-manifest.json), and prepends to [`CHANGELOG.md`](./CHANGELOG.md).
+3. **Merge that Release PR** when you want to ship. On merge, release-please creates a **Git tag** and **GitHub Release**, then the **`publish` job** runs **`npm publish --provenance --access public`** using **npm Trusted Publishing (OIDC)** — no `NPM_TOKEN` secret.
+
+**One-time setup**
+
+- **npm:** Package → **Settings** → **Trusted Publishers** → add **GitHub Actions** for org `vitrionbv`, repo `expo-state-mcp`, workflow file **`release.yml`** (environment blank unless you add one).
+- **GitHub:** Repository → **Settings** → **Actions** → **General** → enable **Read and write** workflow permissions and **Allow GitHub Actions to create and approve pull requests** (release-please needs this for Release PRs).
+
+### Manual publish (emergency / local)
+
+If you must publish outside CI, OTP may still apply to your npm account:
 
 ```bash
 yarn build
 npm publish --access public --otp=<code>
 ```
 
-`prepublishOnly` runs the build. Optional: `git tag v1.x.x && git push origin v1.x.x`, then `npm view @vitrion/expo-state-mcp version` to verify.
+`prepublishOnly` runs `npm run build` again as a safety net.
 
 ## Consume from npm
 

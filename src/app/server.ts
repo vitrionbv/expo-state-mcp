@@ -12,7 +12,21 @@ import {
   handleZustandSet,
   handleZustandStores,
 } from "./handlers/zustand";
-import { buildHttpResponse, tryParseHttpRequest } from "./util/http";
+import {
+  buildHttpResponse,
+  PARSE_PAYLOAD_TOO_LARGE,
+  tryParseHttpRequest,
+} from "./util/http";
+
+/** Constant-time string compare (no Node `crypto`; safe for RN bridge). */
+function timingSafeEqualStrings(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) {
+    out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return out === 0;
+}
 
 function checkAuth(
   headers: Record<string, string>,
@@ -21,7 +35,8 @@ function checkAuth(
   if (token == null || token === "") return true;
   const auth = headers["authorization"];
   if (!auth || !auth.startsWith("Bearer ")) return false;
-  return auth.slice("Bearer ".length) === token;
+  const presented = auth.slice("Bearer ".length);
+  return timingSafeEqualStrings(presented, token);
 }
 
 function json(result: unknown, status = 200): { status: number; body: Buffer } {
@@ -147,7 +162,20 @@ export function startBridgeServer(
       chunks.push(bufChunk);
       const buf = Buffer.concat(chunks);
       const parsed = tryParseHttpRequest(buf);
-      if (!parsed) return;
+      if (parsed === null) return;
+      if (parsed === PARSE_PAYLOAD_TOO_LARGE) {
+        socket.write(
+          buildHttpResponse({
+            status: 413,
+            body: Buffer.from(
+              JSON.stringify({ ok: false, error: "Payload Too Large" }),
+              "utf8",
+            ),
+          }),
+        );
+        socket.end();
+        return;
+      }
 
       void dispatch(ctx, parsed, listen).then(({ status, body }) => {
         socket.write(buildHttpResponse({ status, body }));

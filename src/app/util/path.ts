@@ -1,7 +1,19 @@
+/** Keys that must not be used as dot-path segments (prototype pollution). */
+const FORBIDDEN_PATH_KEYS = new Set(["__proto__", "prototype", "constructor"]);
+
+function assertPathSegments(parts: string[]): void {
+  for (const p of parts) {
+    if (FORBIDDEN_PATH_KEYS.has(p)) {
+      throw new Error(`Forbidden key in path: ${p}`);
+    }
+  }
+}
+
 /** Get value at dot path (e.g. `a.b.c`). */
 export function getAtPath(root: unknown, path: string | undefined | null): unknown {
   if (path == null || path === "") return root;
   const parts = path.split(".").filter(Boolean);
+  assertPathSegments(parts);
   let cur: unknown = root;
   for (const p of parts) {
     if (cur === null || cur === undefined || typeof cur !== "object") {
@@ -20,8 +32,16 @@ export function setAtPath(
   mode: "merge" | "set",
 ): Record<string, unknown> {
   const parts = path.split(".").filter(Boolean);
+  assertPathSegments(parts);
   if (parts.length === 0) {
-    if (mode === "merge" && root !== null && typeof root === "object" && value !== null && typeof value === "object" && !Array.isArray(value)) {
+    if (
+      mode === "merge" &&
+      root !== null &&
+      typeof root === "object" &&
+      value !== null &&
+      typeof value === "object" &&
+      !Array.isArray(value)
+    ) {
       return { ...root, ...(value as Record<string, unknown>) };
     }
     return value as Record<string, unknown>;
@@ -41,8 +61,18 @@ export function setAtPath(
   }
 
   const last = parts[parts.length - 1];
-  if (mode === "merge" && cur[last] !== null && typeof cur[last] === "object" && value !== null && typeof value === "object" && !Array.isArray(value)) {
-    cur[last] = { ...(cur[last] as Record<string, unknown>), ...(value as Record<string, unknown>) };
+  if (
+    mode === "merge" &&
+    cur[last] !== null &&
+    typeof cur[last] === "object" &&
+    value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value)
+  ) {
+    cur[last] = {
+      ...(cur[last] as Record<string, unknown>),
+      ...(value as Record<string, unknown>),
+    };
   } else {
     cur[last] = value as unknown;
   }

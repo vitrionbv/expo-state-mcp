@@ -1,5 +1,11 @@
 import { Buffer } from "buffer";
 
+/** Reject bodies larger than this to avoid OOM on malformed Content-Length (dev bridge). */
+export const MAX_REQUEST_BODY_BYTES = 5 * 1024 * 1024;
+
+/** Returned when `Content-Length` exceeds [MAX_REQUEST_BODY_BYTES]. */
+export const PARSE_PAYLOAD_TOO_LARGE = "PARSE_PAYLOAD_TOO_LARGE" as const;
+
 export interface ParsedHttpRequest {
   method: string;
   path: string;
@@ -8,18 +14,13 @@ export interface ParsedHttpRequest {
   body: Buffer;
 }
 
-function parseQuery(q: string): Record<string, string> {
-  const out: Record<string, string> = {};
-  if (!q) return out;
-  for (const pair of q.split("&")) {
-    const [k, v] = pair.split("=").map((s) => decodeURIComponent(s.replace(/\+/g, " ")));
-    if (k) out[k] = v ?? "";
-  }
-  return out;
-}
+export type TryParseHttpRequestResult =
+  | ParsedHttpRequest
+  | typeof PARSE_PAYLOAD_TOO_LARGE
+  | null;
 
 /** Minimal HTTP/1.1 request parser for JSON APIs (single request per connection). */
-export function tryParseHttpRequest(buffer: Buffer): ParsedHttpRequest | null {
+export function tryParseHttpRequest(buffer: Buffer): TryParseHttpRequestResult {
   const headerEnd = buffer.indexOf("\r\n\r\n");
   if (headerEnd === -1) return null;
 
@@ -50,6 +51,7 @@ export function tryParseHttpRequest(buffer: Buffer): ParsedHttpRequest | null {
   const cl = headers["content-length"];
   const need = cl ? parseInt(cl, 10) : 0;
   if (Number.isNaN(need)) return null;
+  if (need > MAX_REQUEST_BODY_BYTES) return PARSE_PAYLOAD_TOO_LARGE;
   if (body.length < need) return null;
 
   return {
@@ -67,7 +69,15 @@ export function buildHttpResponse(opts: {
   body: string | Buffer;
 }): Buffer {
   const statusText =
-    opts.status === 200 ? "OK" : opts.status === 404 ? "Not Found" : opts.status === 401 ? "Unauthorized" : "Error";
+    opts.status === 200
+      ? "OK"
+      : opts.status === 404
+        ? "Not Found"
+        : opts.status === 401
+          ? "Unauthorized"
+          : opts.status === 413
+            ? "Payload Too Large"
+            : "Error";
   const bodyBuf = typeof opts.body === "string" ? Buffer.from(opts.body, "utf8") : opts.body;
   const h: Record<string, string> = {
     "Content-Type": "application/json; charset=utf-8",

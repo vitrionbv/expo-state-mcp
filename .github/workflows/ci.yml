@@ -15,12 +15,15 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
-          cache: "yarn"
+          node-version-file: .nvmrc
+          cache: yarn
           cache-dependency-path: yarn.lock
 
       - name: Install
         run: yarn install --frozen-lockfile
+
+      - name: Typecheck
+        run: yarn typecheck
 
       - name: Build package
         run: yarn build
