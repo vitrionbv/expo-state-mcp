@@ -14,15 +14,33 @@ yarn workspace @expo-state-mcp/bridge build
 yarn workspace @expo-state-mcp/server build
 ```
 
-## Consume from a host Expo app via `file:`
+## Publishing to npm
 
-In the host app `package.json`:
+Scoped packages must be published **twice** (bridge and server). Ensure you are logged in (`npm whoami`) and have publish rights for the `@expo-state-mcp` scope on npm.
+
+From the repo root:
+
+```bash
+cd packages/bridge && npm publish --access public
+cd ../server && npm publish --access public
+```
+
+`prepublishOnly` runs `npm run build` automatically.
+
+After publishing, tag Git to match (`v0.1.1`) and push tags.
+
+## Consume from npm (host Expo app)
+
+```bash
+yarn add -D @expo-state-mcp/bridge @expo-state-mcp/server
+```
+
+`react-native-tcp-socket` ships with `@expo-state-mcp/bridge`; do not add it manually.
+
+## Consume from a host Expo app via `file:`
 
 ```json
 {
-  "dependencies": {
-    "react-native-tcp-socket": "^6.4.1"
-  },
   "devDependencies": {
     "@expo-state-mcp/bridge": "file:../expo-state-mcp/packages/bridge",
     "@expo-state-mcp/server": "file:../expo-state-mcp/packages/server"
@@ -36,7 +54,7 @@ After changing bridge/server sources, rebuild (`yarn build` here) and restart Me
 
 ## Cursor MCP pointing at local server build
 
-Use `node` + absolute path to `packages/server/dist/cli.js`, or a path relative to the app repo:
+Use `node` + path to `packages/server/dist/cli.js`:
 
 ```json
 {
@@ -52,12 +70,14 @@ Use `node` + absolute path to `packages/server/dist/cli.js`, or a path relative 
 }
 ```
 
+For published packages, prefer `npx -y @expo-state-mcp/server` (see root README).
+
 ## Tags / releases
 
-Tag releases (`v0.1.0`) when you want reproducible installs from Git:
+Tag releases when you want reproducible Git installs:
 
 ```bash
-git tag v0.1.0 && git push origin v0.1.0
+git tag v0.1.1 && git push origin v0.1.1
 ```
 
-Consumers can pin `file:` deps or install from npm once published.
+Prefer **npm** (`@expo-state-mcp/bridge`, `@expo-state-mcp/server`) for consumers when possible.

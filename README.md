@@ -17,23 +17,23 @@ Cursor  ←stdio→  @expo-state-mcp/server  ←HTTP→  @expo-state-mcp/bridge 
 
 ### 1. Dependencies
 
-Peer deps for the bridge:
+From **npm** (recommended):
 
 ```bash
-yarn add react-native-tcp-socket
 yarn add -D @expo-state-mcp/bridge @expo-state-mcp/server
 ```
 
-Install from this monorepo while developing locally (paths are examples — adjust):
+`react-native-tcp-socket` is bundled as a dependency of `@expo-state-mcp/bridge` — you do **not** add it separately.
+
+Rebuild native binaries once after installing (`expo run:ios` / `expo run:android`) so autolinking picks up the native module.
+
+**Local monorepo** (path is an example — adjust to your layout):
 
 ```bash
-yarn add react-native-tcp-socket
 yarn add -D \
   file:../expo-state-mcp/packages/bridge \
   file:../expo-state-mcp/packages/server
 ```
-
-Then rebuild native binaries (`expo run:ios` / `expo run:android`) once so `react-native-tcp-socket` links.
 
 ### 2. Wire the bridge (`__DEV__`)
 
@@ -63,12 +63,28 @@ Optional shared secret:
 
 ### 3. Cursor MCP (`.cursor/mcp.json`)
 
-From the Expo app repo (paths relative to app root):
+Publish-style (uses npm package — no local `dist/` path):
 
 ```json
 {
   "mcpServers": {
     "expo-state-mcp": {
+      "command": "npx",
+      "args": ["-y", "@expo-state-mcp/server"],
+      "env": {
+        "EXPO_STATE_MCP_BRIDGE_URL": "http://127.0.0.1:9778"
+      }
+    }
+  }
+}
+```
+
+Local dev alternative (run from built workspace):
+
+```json
+{
+  "mcpServers": {
+    "expo-state-mcp-local": {
       "command": "node",
       "args": ["../expo-state-mcp/packages/server/dist/cli.js"],
       "env": {
@@ -78,8 +94,6 @@ From the Expo app repo (paths relative to app root):
   }
 }
 ```
-
-Rebuild `packages/server` (`yarn workspace @expo-state-mcp/server build`) after pulling changes.
 
 ### Connectivity
 

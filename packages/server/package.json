@@ -1,6 +1,6 @@
 {
   "name": "@expo-state-mcp/server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server (stdio) that proxies to @expo-state-mcp/bridge over HTTP",
   "type": "module",
   "bin": {
@@ -13,7 +13,8 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json && node ./scripts/add-shebang.mjs",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "expo",
@@ -33,10 +34,17 @@
   "engines": {
     "node": ">=18"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vitrionbv/expo-state-mcp.git",
     "directory": "packages/server"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/vitrionbv/expo-state-mcp/issues"
+  },
+  "homepage": "https://github.com/vitrionbv/expo-state-mcp#readme"
 }

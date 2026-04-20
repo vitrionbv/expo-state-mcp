@@ -21,7 +21,7 @@ function unwrapApi(data: unknown): { ok: boolean; payload?: unknown; error?: str
 export async function runMcp(): Promise<void> {
   const server = new McpServer({
     name: "expo-state-mcp",
-    version: "0.1.0",
+    version: "0.1.1",
   });
 
   server.registerTool(

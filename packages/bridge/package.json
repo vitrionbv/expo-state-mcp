@@ -1,6 +1,6 @@
 {
   "name": "@expo-state-mcp/bridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "In-app HTTP bridge for Expo SQLite + Zustand, dev-only, for use with @expo-state-mcp/server",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist",
-    "lint": "echo \"no lint yet\""
+    "lint": "echo \"no lint yet\"",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "expo",
@@ -19,11 +20,13 @@
     "mcp",
     "devtools"
   ],
+  "dependencies": {
+    "react-native-tcp-socket": "^6.4.1"
+  },
   "peerDependencies": {
     "expo-sqlite": ">=14.0.0",
     "react": "*",
     "react-native": "*",
-    "react-native-tcp-socket": ">=6.0.0",
     "zustand": ">=4.0.0"
   },
   "peerDependenciesMeta": {
@@ -34,14 +37,20 @@
   "devDependencies": {
     "@types/react": "~19.1.0",
     "expo-sqlite": "~16.0.10",
-    "react-native-tcp-socket": "^6.4.1",
     "typescript": "~5.9.2",
     "zustand": "^5.0.8"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vitrionbv/expo-state-mcp.git",
     "directory": "packages/bridge"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/vitrionbv/expo-state-mcp/issues"
+  },
+  "homepage": "https://github.com/vitrionbv/expo-state-mcp#readme"
 }

@@ -4,10 +4,13 @@ In-app HTTP bridge for **Expo SQLite** + **Zustand**, intended for local develop
 
 See the [repository README](../../README.md) for setup.
 
+## Dependencies
+
+- **`react-native-tcp-socket`** is bundled as a normal dependency — consumers do not install it separately.
+
 ## Peer dependencies
 
 - `expo-sqlite`
-- `react-native-tcp-socket`
 - `zustand`
 - `react`, `react-native`
 
