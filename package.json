@@ -37,10 +37,17 @@
   },
   "keywords": [
     "expo",
+    "react-native",
     "mcp",
+    "model-context-protocol",
+    "cursor",
     "sqlite",
+    "expo-sqlite",
     "zustand",
-    "cursor"
+    "devtools",
+    "debugging",
+    "state-inspection",
+    "developer-tools"
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

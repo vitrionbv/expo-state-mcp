@@ -1,6 +1,13 @@
 # expo-state-mcp
 
-Dev-only toolkit: a running **Expo** app’s **`expo-sqlite`** DB and **`zustand`** stores exposed over HTTP, plus an **MCP** (stdio) server so **Cursor** can inspect and change live state.
+[![npm](https://img.shields.io/npm/v/%40vitrion%2Fexpo-state-mcp?logo=npm&label=npm)](https://www.npmjs.com/package/@vitrion/expo-state-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/%40vitrion%2Fexpo-state-mcp?logo=npm&label=downloads)](https://www.npmjs.com/package/@vitrion/expo-state-mcp)
+[![CI](https://github.com/vitrionbv/expo-state-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/vitrionbv/expo-state-mcp/actions/workflows/ci.yml)
+[![Release](https://github.com/vitrionbv/expo-state-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/vitrionbv/expo-state-mcp/actions/workflows/release.yml)
+[![Provenance](https://img.shields.io/badge/npm-provenance-success?logo=npm)](https://docs.npmjs.com/generating-provenance-statements)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
+> Inspect and mutate a running **Expo** app's live **`expo-sqlite`** database and **`zustand`** stores from **Cursor** via **MCP** — dev-only, zero production footprint.
 
 **One package (`@vitrion/expo-state-mcp`):** Metro resolves the **`react-native`** export (TCP bridge in the app); Node/Cursor runs the **`expo-state-mcp`** CLI.
 
