@@ -1,6 +1,6 @@
 {
   "name": "@vitrion/expo-state-mcp",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "MCP server + in-app HTTP bridge for Expo SQLite and Zustand — works with Cursor, Claude, OpenAI Codex (CLI + IDE), and any MCP client (dev-only)",
   "type": "module",
   "main": "./dist/cli/cli.js",
