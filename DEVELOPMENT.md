@@ -46,7 +46,7 @@ npm publish --access public --otp=<code>
 
 npm’s docs require **Node ≥ 22.14.0** and **npm CLI ≥ 11.5.1** for [Trusted Publishing](https://docs.npmjs.com/trusted-publishers). Older versions can fail with a **misleading `404 Not Found` on `PUT …/@scope%2fpackage`** even when provenance steps succeed — see [npm/cli#8976](https://github.com/npm/cli/issues/8976).
 
-This repo pins **`.nvmrc`** to **22.14.0** and the **release** workflow upgrades the global **npm** to **^11.5.1** before `npm publish`. Re-run the failed workflow after pulling latest `main`.
+This repo pins **`.nvmrc`** to **Node 24**, which bundles **npm 11.5+**. Avoid `npm install -g npm` on GitHub Actions (it can break the runner’s npm). Re-run the failed workflow after pulling latest `main`.
 
 Also verify on npmjs.com: **package → Settings → Trusted publishing** matches **workflow file `release.yml`**, GitHub org/repo, and that **`package.json` `repository.url`** matches this GitHub repo exactly.
 
