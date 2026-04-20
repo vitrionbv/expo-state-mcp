@@ -39,6 +39,10 @@ jobs:
     needs: release-please
     if: github.event_name == 'push' && needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
+    # Explicit id-token so npm can use OIDC (workflow-level permissions do not always apply per-job the same way).
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -70,6 +74,9 @@ jobs:
   publish-retry:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
