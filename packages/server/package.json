@@ -1,7 +1,7 @@
 {
-  "name": "@expo-state-mcp/server",
-  "version": "0.1.1",
-  "description": "MCP server (stdio) that proxies to @expo-state-mcp/bridge over HTTP",
+  "name": "@vitrion/expo-state-mcp",
+  "version": "0.1.2",
+  "description": "MCP server (stdio) that proxies to @vitrion/expo-state-mcp-bridge over HTTP",
   "type": "module",
   "bin": {
     "expo-state-mcp": "./dist/cli.js"
@@ -35,7 +35,8 @@
     "node": ">=18"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
   "repository": {

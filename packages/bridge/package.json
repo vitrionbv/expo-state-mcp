@@ -1,7 +1,7 @@
 {
-  "name": "@expo-state-mcp/bridge",
-  "version": "0.1.1",
-  "description": "In-app HTTP bridge for Expo SQLite + Zustand, dev-only, for use with @expo-state-mcp/server",
+  "name": "@vitrion/expo-state-mcp-bridge",
+  "version": "0.1.2",
+  "description": "In-app HTTP bridge for Expo SQLite + Zustand, dev-only — pairs with @vitrion/expo-state-mcp",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -41,7 +41,8 @@
     "zustand": "^5.0.8"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
   "repository": {
