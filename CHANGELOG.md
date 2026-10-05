@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/vitrionbv/expo-state-mcp/compare/expo-state-mcp-v1.2.0...expo-state-mcp-v1.3.0) (2026-10-05)
+
+
+### Features
+
+* multi-device discovery, bridge port fallback and Metro-based device selectors ([f37a55d](https://github.com/vitrionbv/expo-state-mcp/commit/f37a55d371897afa2f12027bd3e11975b2ed2737))
+* multi-device discovery, bridge port fallback and Metro-based device selectors ([b6e54d8](https://github.com/vitrionbv/expo-state-mcp/commit/b6e54d8e11ae9cc5e9a4731113f7c90adfc9f249))
+
 ## [1.2.0](https://github.com/vitrionbv/expo-state-mcp/compare/expo-state-mcp-v1.1.1...expo-state-mcp-v1.2.0) (2026-04-20)
 
 
