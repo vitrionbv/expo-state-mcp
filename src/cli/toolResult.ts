@@ -23,9 +23,9 @@ export function okText(data: unknown): CallToolResult {
   };
 }
 
-/** Tool success body: `{ device, data }` (device may be null for very old bridges). */
+/** Tool success body: `{ device, data }` (device may be null for very old bridges; `url` is the bridge it came from). */
 export function okWithDevice(
-  device: DeviceInfo | undefined | null,
+  device: (DeviceInfo & { url?: string }) | undefined | null,
   payload: unknown,
 ): CallToolResult {
   return okText({ device: device ?? null, data: payload });

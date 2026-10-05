@@ -1,4 +1,7 @@
 import { tryGetLanIPv4 } from "./ip";
+import { collectMetroInfo, type MetroInfo } from "./metro";
+
+export type { MetroInfo } from "./metro";
 
 export interface DeviceInfo {
   id: string;
@@ -10,6 +13,14 @@ export interface DeviceInfo {
   deviceName?: string;
   isPhysicalDevice?: boolean;
   lanIp?: string;
+  /** Bundle / package id (from `expo-application` when installed). */
+  applicationId?: string;
+  /** Metro the bundle was loaded from; `null` for an embedded bundle. */
+  metro?: MetroInfo | null;
+  /** Address the bridge actually bound on the device (set once listening). */
+  bridge?: { host: string; port: number };
+  /** ISO timestamp of `setupBridge` (changes on every JS reload). */
+  startedAt?: string;
 }
 
 /** Lowercase slug segment for device id (alphanumeric + dashes). */
@@ -32,6 +43,9 @@ export interface DeviceInfoInput {
   deviceIsDevice?: boolean;
   deviceBrand?: string;
   lanIp?: string;
+  applicationId?: string;
+  metro?: MetroInfo | null;
+  startedAt?: string;
   /** Four hex chars for deterministic tests; otherwise random. */
   idSuffix?: string;
 }
@@ -74,6 +88,9 @@ export function buildDeviceInfoFrom(input: DeviceInfoInput): DeviceInfo {
     deviceName: input.constantsDeviceName,
     isPhysicalDevice: input.deviceIsDevice,
     lanIp: input.lanIp,
+    applicationId: input.applicationId,
+    metro: input.metro,
+    startedAt: input.startedAt,
   };
 }
 
@@ -118,6 +135,18 @@ function tryExpoDevice(): {
   }
 }
 
+function tryExpoApplication(): { applicationId?: string } {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const ExpoApplication = require("expo-application") as {
+      applicationId?: string | null;
+    };
+    return { applicationId: ExpoApplication.applicationId ?? undefined };
+  } catch {
+    return {};
+  }
+}
+
 /**
  * Collect device info for the running bridge (React Native / Expo).
  */
@@ -135,6 +164,7 @@ export async function collectDeviceInfo(appName?: string): Promise<DeviceInfo> {
     brand: deviceBrand,
   } = tryExpoDevice();
 
+  const { applicationId } = tryExpoApplication();
   const lanIp = await tryGetLanIPv4();
 
   return buildDeviceInfoFrom({
@@ -147,5 +177,8 @@ export async function collectDeviceInfo(appName?: string): Promise<DeviceInfo> {
     deviceIsDevice: deviceIsDevice ?? undefined,
     deviceBrand: deviceBrand ?? undefined,
     lanIp,
+    applicationId,
+    metro: collectMetroInfo(),
+    startedAt: new Date().toISOString(),
   });
 }
