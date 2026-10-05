@@ -20,6 +20,7 @@ describe("listResolvedDevices legacy /health fallback", () => {
 
   it("uses /health when /device is missing (older bridge)", async () => {
     vi.stubEnv("EXPO_STATE_MCP_BRIDGE_URL", "http://127.0.0.1:9778");
+    vi.stubEnv("EXPO_STATE_MCP_PORT_RANGE", "off");
     delete process.env.EXPO_STATE_MCP_BRIDGES;
     bridgeGetMock
       .mockResolvedValueOnce({
@@ -40,7 +41,7 @@ describe("listResolvedDevices legacy /health fallback", () => {
     expect(entries).toHaveLength(1);
     expect(entries[0].info.id).toMatch(/^legacy-/);
     expect(entries[0].info.appName).toBe("legacy-app");
-    expect(bridgeGetMock).toHaveBeenCalledWith("/device", "http://127.0.0.1:9778");
-    expect(bridgeGetMock).toHaveBeenCalledWith("/health", "http://127.0.0.1:9778");
+    expect(bridgeGetMock).toHaveBeenCalledWith("/device", "http://127.0.0.1:9778", { timeoutMs: 2500 });
+    expect(bridgeGetMock).toHaveBeenCalledWith("/health", "http://127.0.0.1:9778", { timeoutMs: 2500 });
   });
 });

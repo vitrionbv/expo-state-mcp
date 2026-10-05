@@ -118,7 +118,7 @@ EXPO_STATE_MCP_BRIDGE_URL = "http://127.0.0.1:9778"
 
 Or: `codex mcp add expo-state-mcp --env EXPO_STATE_MCP_BRIDGE_URL=http://127.0.0.1:9778 -- node /absolute/path/to/expo-state-mcp/dist/cli/cli.js`
 
-**Several bridges:** add env **`EXPO_STATE_MCP_BRIDGES`** (JSON array or comma-separated URLs) and optional **`EXPO_STATE_MCP_DEFAULT_DEVICE`** — see [README](./README.md) § **Devices (MCP)**.
+**Several bridges:** the CLI scans `127.0.0.1:9778-9797` by default (`EXPO_STATE_MCP_PORT_RANGE`). Pin one app with **`EXPO_STATE_MCP_METRO_PORT`** or **`EXPO_STATE_MCP_DEFAULT_DEVICE`**, or list URLs in **`EXPO_STATE_MCP_BRIDGES`**. See [README](./README.md) § **Several apps at once**.
 
 Published installs typically use `npx -y @vitrion/expo-state-mcp` — see the root [README](./README.md).
 
@@ -128,6 +128,7 @@ Published installs typically use `npx -y @vitrion/expo-state-mcp` — see the ro
 
 If **`curl http://127.0.0.1:9778/health`** from your dev machine fails while the app is open:
 
-- **Android emulator:** run `adb reverse tcp:9778 tcp:9778`.
+- **Android emulator:** run `adb forward tcp:9778 tcp:9778` (host to device; several emulators: one free host port each, see README § **Android**).
+- **Several apps:** the console log shows which port each bridge bound (`port 9778 taken, using 9779`); call `list_devices` to see them all.
 - **iOS Simulator:** try `setupBridge({ ..., bindAllInterfaces: true })` — see README section **bindAllInterfaces (optional)**.
 - **Physical device:** use LAN URL + `EXPO_STATE_MCP_BRIDGE_URL` as in the README.

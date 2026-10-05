@@ -12,6 +12,7 @@ import {
   handleZustandSet,
   handleZustandStores,
 } from "./handlers/zustand";
+import { listenWithFallback, type ListenableServer } from "./util/listen";
 import {
   buildHttpResponse,
   PARSE_PAYLOAD_TOO_LARGE,
@@ -135,34 +136,72 @@ async function dispatch(
 }
 
 export interface StartBridgeOptions {
-  port: number;
   host: string;
+  /** Ports to try in order (first free one wins). */
+  ports: number[];
 }
 
-/** Start TCP HTTP server; only call from React Native dev. */
-export function startBridgeServer(
+type Connection = {
+  on: (ev: string, fn: (...args: unknown[]) => void) => void;
+  write: (buf: Buffer) => void;
+  end: () => void;
+  destroy?: () => void;
+};
+
+type TcpSocketModule = {
+  createServer: (cb: (s: Connection) => void) => ListenableServer;
+  createConnection: (
+    opts: { port: number; host: string },
+    cb?: () => void,
+  ) => Connection;
+};
+
+function loadTcpSocket(): TcpSocketModule {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  return require("react-native-tcp-socket") as TcpSocketModule;
+}
+
+/** `true` when something already accepts TCP on `host:port` (catches SO_REUSEADDR overlaps). */
+function probePortInUse(
+  tcp: TcpSocketModule,
+  host: string,
+  port: number,
+  timeoutMs = 300,
+): Promise<boolean> {
+  const probeHost = host === "0.0.0.0" || host === "::" ? "127.0.0.1" : host;
+  return new Promise((resolve) => {
+    let done = false;
+    let sock: Connection | null = null;
+    const finish = (inUse: boolean) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      try {
+        sock?.destroy?.();
+      } catch {
+        /* ignore */
+      }
+      resolve(inUse);
+    };
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    try {
+      sock = tcp.createConnection({ port, host: probeHost }, () => finish(true));
+      sock.on("error", () => finish(false));
+    } catch {
+      finish(false);
+    }
+  });
+}
+
+/** Start TCP HTTP server on the first free port; only call from React Native dev. */
+export async function startBridgeServer(
   ctx: BridgeContext,
   listen: StartBridgeOptions,
-): { close: () => void } {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { createServer } = require("react-native-tcp-socket") as {
-    createServer: (cb: (s: Connection) => void) => {
-      listen: (
-        opts: { port: number; host?: string },
-        cb?: () => void,
-      ) => void;
-      close: (cb?: (err?: Error) => void) => void;
-      on: (ev: string, fn: (...a: unknown[]) => void) => void;
-    };
-  };
+): Promise<{ close: () => void; port: number; skipped: Array<{ port: number; reason: string }> }> {
+  const tcp = loadTcpSocket();
+  const bound = { port: listen.ports[0] ?? 0, host: listen.host };
 
-  type Connection = {
-    on: (ev: string, fn: (...args: unknown[]) => void) => void;
-    write: (buf: Buffer) => void;
-    end: () => void;
-  };
-
-  const server = createServer((socket: Connection) => {
+  const handleConnection = (socket: Connection) => {
     const chunks: Buffer[] = [];
     socket.on("data", (chunk: unknown) => {
       const bufChunk = Buffer.isBuffer(chunk)
@@ -186,7 +225,7 @@ export function startBridgeServer(
         return;
       }
 
-      void dispatch(ctx, parsed, listen).then(({ status, body }) => {
+      void dispatch(ctx, parsed, bound).then(({ status, body }) => {
         socket.write(buildHttpResponse({ status, body }));
         socket.end();
       });
@@ -194,17 +233,21 @@ export function startBridgeServer(
     socket.on("error", () => {
       /* ignore */
     });
+  };
+
+  const { server, port, skipped } = await listenWithFallback({
+    host: listen.host,
+    ports: listen.ports,
+    createServer: () => tcp.createServer(handleConnection),
+    isPortInUse: (p) => probePortInUse(tcp, listen.host, p),
   });
 
-  server.listen({ port: listen.port, host: listen.host }, () => {
-    /* logged from setupBridge */
-  });
-
-  server.on("error", (err: unknown) => {
-    console.warn("[expo-state-mcp] bridge server error:", err);
-  });
+  bound.port = port;
+  ctx.device = { ...ctx.device, bridge: { host: listen.host, port } };
 
   return {
+    port,
+    skipped,
     close: () => {
       server.close();
     },

@@ -33,13 +33,14 @@ describe("resolveDevice", () => {
 
   it("resolves single bridge without device arg", async () => {
     vi.stubEnv("EXPO_STATE_MCP_BRIDGE_URL", "http://127.0.0.1:9778");
+    vi.stubEnv("EXPO_STATE_MCP_PORT_RANGE", "off");
     delete process.env.EXPO_STATE_MCP_BRIDGES;
     bridgeGetMock.mockResolvedValue(okDeviceBody("dev-one"));
 
     const r = await resolveDevice();
     expect(r.url).toBe("http://127.0.0.1:9778");
     expect(r.info.id).toBe("dev-one");
-    expect(bridgeGetMock).toHaveBeenCalledWith("/device", "http://127.0.0.1:9778");
+    expect(bridgeGetMock).toHaveBeenCalledWith("/device", "http://127.0.0.1:9778", { timeoutMs: 2500 });
   });
 
   it("picks by device id when multiple bridges", async () => {

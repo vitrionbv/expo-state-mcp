@@ -20,12 +20,18 @@ function headers(): Headers {
   return h;
 }
 
+export interface BridgeRequestOptions {
+  /** Abort after this many ms (default 10 000). Discovery scans use a short value. */
+  timeoutMs?: number;
+}
+
 export async function bridgeGet(
   pathAndQuery: string,
   bridgeBaseUrl?: string,
+  options?: BridgeRequestOptions,
 ): Promise<unknown> {
   const base = resolvedBase(bridgeBaseUrl);
-  const ctrl = AbortSignal.timeout(TIMEOUT_MS);
+  const ctrl = AbortSignal.timeout(options?.timeoutMs ?? TIMEOUT_MS);
   let res: Response;
   try {
     res = await fetch(`${base}${pathAndQuery}`, {

@@ -6,8 +6,10 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { bridgeGet, bridgePost } from "./bridgeClient.js";
 import {
+  defaultSelection,
   getDefaultDeviceId,
-  listResolvedDevices,
+  getRegistry,
+  selectorsFor,
   type DeviceInfo,
   resolveDevice,
 } from "./devices.js";
@@ -26,7 +28,9 @@ const packageVersion = (
 const deviceField = z
   .string()
   .optional()
-  .describe("Device id or alias from list_devices (required when multiple bridges are configured).");
+  .describe(
+    'Target app: "metro:<port>" (the Metro port the app was opened from), "bridge:<port>", "name:<device name>", "project:<path>", or a device id / alias from list_devices. Required when several bridges are live.',
+  );
 
 function unwrapApi(data: unknown):
   | { ok: true; payload: unknown; device?: DeviceInfo }
@@ -48,6 +52,32 @@ function unwrapApi(data: unknown):
   return { ok: false, error: JSON.stringify(data) };
 }
 
+/**
+ * Resolve the target, call the bridge, wrap `{ device, data }`.
+ * When the bridge is gone (app reloaded or moved port), re-probe once and retry.
+ */
+async function callDevice(
+  device: string | undefined,
+  call: (url: string) => Promise<unknown>,
+) {
+  try {
+    let target = await resolveDevice(device);
+    let raw: unknown;
+    try {
+      raw = await call(target.url);
+    } catch (e) {
+      if (!String(e).includes("Bridge unreachable")) throw e;
+      target = await resolveDevice(device, { refresh: true });
+      raw = await call(target.url);
+    }
+    const u = unwrapApi(raw);
+    if (!u.ok) return errText(u.error ?? "Unknown error");
+    return okWithDevice({ ...(u.device ?? target.info), url: target.url }, u.payload);
+  } catch (e) {
+    return errText(e instanceof Error ? e.message : String(e));
+  }
+}
+
 export async function runMcp(): Promise<void> {
   const server = new McpServer({
     name: "expo-state-mcp",
@@ -58,21 +88,30 @@ export async function runMcp(): Promise<void> {
     "list_devices",
     {
       description:
-        "List Expo bridge targets (device id, platform, app name) from EXPO_STATE_MCP_BRIDGES / EXPO_STATE_MCP_BRIDGE_URL. Probes each URL via GET /device. Use refresh=true to re-fetch.",
+        "List running Expo apps with an expo-state-mcp bridge. Scans 127.0.0.1 ports EXPO_STATE_MCP_PORT_RANGE (default 9778-9797) plus EXPO_STATE_MCP_BRIDGE_URL / EXPO_STATE_MCP_BRIDGES. Each device shows its Metro port, device name, bridge URL, Metro project root and the selectors to pass as `device`. Use refresh=true to re-probe.",
       inputSchema: z.object({
         refresh: z.boolean().optional(),
       }),
     },
     async ({ refresh }) => {
       try {
-        const entries = await listResolvedDevices(refresh ?? false);
+        const registry = await getRegistry(refresh ?? false);
         const defaultId = await getDefaultDeviceId();
+        const def = defaultSelection(registry.devices);
         return okText({
           default: defaultId,
-          devices: entries.map((e) => e.info),
+          defaultReason: def.reason,
+          devices: registry.devices.map((e) => ({
+            ...e.info,
+            url: e.url,
+            alias: e.alias,
+            projectRoot: e.projectRoot,
+            selectors: selectorsFor(e),
+          })),
+          unreachable: registry.unreachable,
         });
       } catch (e) {
-        return errText(String(e));
+        return errText(e instanceof Error ? e.message : String(e));
       }
     },
   );
@@ -86,15 +125,9 @@ export async function runMcp(): Promise<void> {
       }),
     },
     async ({ device }) => {
-      try {
-        const target = await resolveDevice(device);
-        const raw = await bridgeGet("/sqlite/tables", target.url);
-        const u = unwrapApi(raw);
-        if (!u.ok) return errText(u.error ?? "Unknown error");
-        return okWithDevice(u.device ?? target.info, u.payload);
-      } catch (e) {
-        return errText(String(e));
-      }
+      return callDevice(device, (url) =>
+        bridgeGet("/sqlite/tables", url),
+      );
     },
   );
 
@@ -108,18 +141,9 @@ export async function runMcp(): Promise<void> {
       }),
     },
     async ({ device, table }) => {
-      try {
-        const target = await resolveDevice(device);
-        const raw = await bridgeGet(
-          `/sqlite/schema?table=${encodeURIComponent(table)}`,
-          target.url,
-        );
-        const u = unwrapApi(raw);
-        if (!u.ok) return errText(u.error ?? "Unknown error");
-        return okWithDevice(u.device ?? target.info, u.payload);
-      } catch (e) {
-        return errText(String(e));
-      }
+      return callDevice(device, (url) =>
+        bridgeGet(`/sqlite/schema?table=${encodeURIComponent(table)}`, url),
+      );
     },
   );
 
@@ -137,15 +161,9 @@ export async function runMcp(): Promise<void> {
     },
     async (args) => {
       const { device, ...body } = args;
-      try {
-        const target = await resolveDevice(device);
-        const raw = await bridgePost("/sqlite/query", body, target.url);
-        const u = unwrapApi(raw);
-        if (!u.ok) return errText(u.error ?? "Unknown error");
-        return okWithDevice(u.device ?? target.info, u.payload);
-      } catch (e) {
-        return errText(String(e));
-      }
+      return callDevice(device, (url) =>
+        bridgePost("/sqlite/query", body, url),
+      );
     },
   );
 
@@ -159,22 +177,13 @@ export async function runMcp(): Promise<void> {
       }),
     },
     async ({ device, sql }) => {
-      try {
-        const target = await resolveDevice(device);
-        const raw = await bridgePost(
+      return callDevice(device, (url) =>
+        bridgePost(
           "/sqlite/query",
-          {
-            sql: `EXPLAIN QUERY PLAN ${sql}`,
-            mode: "all",
-          },
-          target.url,
-        );
-        const u = unwrapApi(raw);
-        if (!u.ok) return errText(u.error ?? "Unknown error");
-        return okWithDevice(u.device ?? target.info, u.payload);
-      } catch (e) {
-        return errText(String(e));
-      }
+          { sql: `EXPLAIN QUERY PLAN ${sql}`, mode: "all" },
+          url,
+        ),
+      );
     },
   );
 
@@ -187,15 +196,9 @@ export async function runMcp(): Promise<void> {
       }),
     },
     async ({ device }) => {
-      try {
-        const target = await resolveDevice(device);
-        const raw = await bridgeGet("/zustand/stores", target.url);
-        const u = unwrapApi(raw);
-        if (!u.ok) return errText(u.error ?? "Unknown error");
-        return okWithDevice(u.device ?? target.info, u.payload);
-      } catch (e) {
-        return errText(String(e));
-      }
+      return callDevice(device, (url) =>
+        bridgeGet("/zustand/stores", url),
+      );
     },
   );
 
@@ -210,19 +213,11 @@ export async function runMcp(): Promise<void> {
       }),
     },
     async ({ device, name, path }) => {
-      try {
-        const target = await resolveDevice(device);
-        const q =
-          path !== undefined
-            ? `?name=${encodeURIComponent(name)}&path=${encodeURIComponent(path)}`
-            : `?name=${encodeURIComponent(name)}`;
-        const raw = await bridgeGet(`/zustand/state${q}`, target.url);
-        const u = unwrapApi(raw);
-        if (!u.ok) return errText(u.error ?? "Unknown error");
-        return okWithDevice(u.device ?? target.info, u.payload);
-      } catch (e) {
-        return errText(String(e));
-      }
+      const q =
+        path !== undefined
+          ? `?name=${encodeURIComponent(name)}&path=${encodeURIComponent(path)}`
+          : `?name=${encodeURIComponent(name)}`;
+      return callDevice(device, (url) => bridgeGet(`/zustand/state${q}`, url));
     },
   );
 
@@ -241,15 +236,9 @@ export async function runMcp(): Promise<void> {
     },
     async (args) => {
       const { device, ...body } = args;
-      try {
-        const target = await resolveDevice(device);
-        const raw = await bridgePost("/zustand/state", body, target.url);
-        const u = unwrapApi(raw);
-        if (!u.ok) return errText(u.error ?? "Unknown error");
-        return okWithDevice(u.device ?? target.info, u.payload);
-      } catch (e) {
-        return errText(String(e));
-      }
+      return callDevice(device, (url) =>
+        bridgePost("/zustand/state", body, url),
+      );
     },
   );
 
@@ -267,15 +256,9 @@ export async function runMcp(): Promise<void> {
     },
     async (args) => {
       const { device, ...body } = args;
-      try {
-        const target = await resolveDevice(device);
-        const raw = await bridgePost("/zustand/call", body, target.url);
-        const u = unwrapApi(raw);
-        if (!u.ok) return errText(u.error ?? "Unknown error");
-        return okWithDevice(u.device ?? target.info, u.payload);
-      } catch (e) {
-        return errText(String(e));
-      }
+      return callDevice(device, (url) =>
+        bridgePost("/zustand/call", body, url),
+      );
     },
   );
 

@@ -81,10 +81,11 @@ Do **not** rely on manual version bumps in day-to-day work; let the Release PR d
 | [`src/app/index.ts`](src/app/index.ts) | `setupBridge` / `teardownBridge` |
 | [`src/app/server.ts`](src/app/server.ts) | HTTP dispatch, auth, TCP server |
 | [`src/app/handlers/`](src/app/handlers/) | SQLite / Zustand / health handlers |
-| [`src/app/util/`](src/app/util/) | HTTP parsing, paths, IP helper, device identity |
+| [`src/app/util/`](src/app/util/) | HTTP parsing, paths, IP helper, device identity, port fallback (`listen.ts`), Metro URL (`metro.ts`) |
 | [`src/cli/mcp.ts`](src/cli/mcp.ts) | MCP tools registration |
 | [`src/cli/bridgeClient.ts`](src/cli/bridgeClient.ts) | HTTP client to the bridge |
-| [`src/cli/devices.ts`](src/cli/devices.ts) | Multi-bridge env parsing, `/device` probe, `resolveDevice` |
+| [`src/cli/devices.ts`](src/cli/devices.ts) | Port scan + explicit bridges, `/device` probe, selectors (`metro:`, `bridge:`, `name:`, `project:`), `resolveDevice` |
+| [`src/cli/metroStatus.ts`](src/cli/metroStatus.ts) | Metro `/status` probe for the project root |
 | [`tests/`](tests/) | Vitest tests |
 | [`eslint.config.mjs`](eslint.config.mjs) | ESLint flat config |
 | [`vitest.config.ts`](vitest.config.ts) | Vitest config |
