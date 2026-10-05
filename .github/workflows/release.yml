@@ -35,9 +35,11 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
+  # Publishes whenever the version on main is not on npm yet. Does not depend on release-please succeeding
+  # (an expired RELEASE_PLEASE_TOKEN must not block a release that is already merged).
   publish:
     needs: release-please
-    if: github.event_name == 'push' && needs.release-please.outputs.release_created == 'true'
+    if: ${{ !cancelled() && github.event_name == 'push' }}
     runs-on: ubuntu-latest
     # Explicit id-token so npm can use OIDC (workflow-level permissions do not always apply per-job the same way).
     permissions:
@@ -45,12 +47,25 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Check whether this version is already on npm
+        id: check
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          PUBLISHED=$(npm view "$NAME@$VERSION" version 2>/dev/null || true)
+          if [ "$PUBLISHED" = "$VERSION" ]; then
+            echo "$NAME@$VERSION is already on npm, skipping publish"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Publishing $NAME@$VERSION"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
 
       # Do not set registry-url here: that injects NODE_AUTH_TOKEN and makes npm use the GitHub token
       # against registry.npmjs.org, which breaks OIDC Trusted Publishing (misleading 404 on publish).
       - name: Setup Node
+        if: steps.check.outputs.publish == 'true'
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -59,15 +74,19 @@ jobs:
 
       # Trusted publishing needs npm CLI >= 11.5.1 (bundled with Node 24+). Do not `npm i -g npm` on Actions — it can break the preinstalled toolchain.
       - name: Verify Node/npm for Trusted Publishing
+        if: steps.check.outputs.publish == 'true'
         run: node -v && npm -v
 
       - name: Install
+        if: steps.check.outputs.publish == 'true'
         run: yarn install --frozen-lockfile
 
       - name: Build
+        if: steps.check.outputs.publish == 'true'
         run: yarn build
 
       - name: Publish to npm (Trusted Publishing + provenance)
+        if: steps.check.outputs.publish == 'true'
         run: npm publish --provenance --access public
 
   # Re-run a failed npm publish without a new release-please release.
